@@ -1,37 +1,53 @@
 package trello
 
 import (
-	"net/url"
-	"net/http"
-	"log"
 	"encoding/json"
+	"log"
+	"net/http"
+	"net/url"
 )
 
 type List struct {
-	Id string
-	Name string
-	Cards []interface{}
+	ID    string
+	Name  string
+	Cards []Card
 }
 
-type Client struct {
-	Key string
+type Card struct {
+	Labels []Label
+}
+
+type Label struct {
+	ID      string
+	IDBoard string
+	Name    string
+	Color   string
+	Uses    int
+}
+
+type Client interface {
+	GetLists(boardID string) (lists []List)
+}
+
+type NetworkClient struct {
+	Key   string
 	Token string
 }
 
-func (c Client) GetLists(boardID string) (lists []List) {
+func (c NetworkClient) GetLists(boardID string) (lists []List) {
 	query := url.Values{
-		"key": {c.Key}, 
-		"token": {c.Token},
-		"cards": {"open"},
-		"card_fields": {"idShort"},
+		"key":         {c.Key},
+		"token":       {c.Token},
+		"cards":       {"open"},
+		"card_fields": {"labels"},
 	}
 	boardUrl := url.URL{
-		Scheme: "https",
-		Host: "api.trello.com",
-		Path: "1/board/" + boardID + "/lists",
+		Scheme:   "https",
+		Host:     "api.trello.com",
+		Path:     "1/board/" + boardID + "/lists",
 		RawQuery: query.Encode(),
 	}
-	
+
 	response, err := http.Get(boardUrl.String())
 	if err != nil {
 		log.Fatal(err)
@@ -40,7 +56,7 @@ func (c Client) GetLists(boardID string) (lists []List) {
 	if response.StatusCode != 200 {
 		log.Fatal("Trello response: " + response.Status)
 	}
-	
+
 	decoder := json.NewDecoder(response.Body)
 	err = decoder.Decode(&lists)
 	if err != nil {

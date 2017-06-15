@@ -1,3 +1,5 @@
 keys.go
 *~
 build/
+dist/
+kanban-stats
