@@ -1,6 +1,6 @@
 ---
 apiVersion: batch/v2alpha1
-kind: ScheduledJob
+kind: CronJob
 metadata:
   name: kanban-stats-collector
 spec:
